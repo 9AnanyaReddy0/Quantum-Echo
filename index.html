@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QUANTUM ECHO: THE REWIND PROTOCOL</title>
+  <meta name="description" content="A story-driven quantum puzzle game. Use X, H and Z gates to restore fractured timelines.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='5' fill='%2300e5ff'/%3E%3Cellipse cx='16' cy='16' rx='14' ry='6' fill='none' stroke='%2300e5ff' stroke-width='1.5'/%3E%3Cellipse cx='16' cy='16' rx='6' ry='14' fill='none' stroke='%23ffb627' stroke-width='1.5'/%3E%3C/svg%3E">
+  <!-- Link external CSS stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Background: stars, grid, drifting glow (purely decorative) -->
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <!-- ===================== TOP BAR / HUD ===================== -->
+  <header class="topbar">
+    <button id="btn-brand-home" class="brand" type="button" aria-label="Quantum Echo: return to mission control">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="4.5" />
+        <ellipse cx="16" cy="16" rx="14" ry="5.5" />
+        <ellipse cx="16" cy="16" rx="5.5" ry="14" />
+      </svg>
+      <span class="brand-text">QUANTUM ECHO<small>The Rewind Protocol</small></span>
+    </button>
+
+    <dl class="hud" aria-label="Operator status">
+      <div class="hud-item">
+        <dt>Cycle</dt>
+        <dd id="hud-date">—</dd>
+      </div>
+      <div class="hud-item">
+        <dt>XP</dt>
+        <dd><span id="hud-xp">0</span></dd>
+      </div>
+      <div class="hud-item hud-rank">
+        <dt>Rank</dt>
+        <dd id="hud-rank">Cadet</dd>
+      </div>
+      <div class="hud-item">
+        <dt>Streak</dt>
+        <dd><span id="hud-streak">0</span><span class="hud-unit">d</span></dd>
+      </div>
+    </dl>
+
+    <button id="btn-open-notes" class="btn btn-ghost btn-small" type="button">Field Notes</button>
+  </header>
+
+  <p id="storage-warning" class="storage-warning hidden" role="status"></p>
+
+  <!-- App Wrapper containing all screens -->
+  <main id="app">
+
+    <!-- ===================== 1. TITLE SCREEN ===================== -->
+    <section id="screen-start" class="screen screen-start" aria-labelledby="start-title">
+      <div class="title-orb" aria-hidden="true">
+        <svg viewBox="0 0 200 200">
+          <circle class="orb-ring r1" cx="100" cy="100" r="92" />
+          <ellipse class="orb-ring r2" cx="100" cy="100" rx="88" ry="30" />
+          <ellipse class="orb-ring r3" cx="100" cy="100" rx="30" ry="88" />
+          <circle class="orb-core" cx="100" cy="100" r="22" />
+        </svg>
+      </div>
+      <h1 id="start-title" class="main-title">QUANTUM ECHO</h1>
+      <p class="subtitle">The Rewind Protocol</p>
+
+      <div class="story-box">
+        <p class="story-stamp">Chronos Array · Incident log 2187-Δ</p>
+        <p>The Cascade shattered the Chronos Array. Every sector's quantum core is now out of step with its original timeline.</p>
+        <p>You are the Echo Operator. You have a single qubit and three gates. Shape each core back into the state its timeline remembers, and the timelines will mend.</p>
+      </div>
+
+      <div class="button-group">
+        <button id="btn-start" class="btn btn-primary" type="button">Enter Mission Control</button>
+        <button id="btn-start-tutorial" class="btn btn-secondary" type="button">Operator Training</button>
+      </div>
+      <p class="start-footnote">No accounts, no downloads. Progress is saved in this browser.</p>
+    </section>
+
+    <!-- ===================== 2. TUTORIAL ===================== -->
+    <section id="screen-tutorial" class="screen screen-tutorial hidden" aria-labelledby="tutorial-heading">
+      <div class="panel tutorial-panel">
+        <div class="tutorial-head">
+          <p class="kicker">Operator Training · <span id="tutorial-step-count">1 / 8</span></p>
+          <h2 id="tutorial-heading">Training Simulator</h2>
+        </div>
+
+        <div id="tutorial-body" class="tutorial-body" aria-live="polite">
+          <article class="tutorial-step">
+            <h3>1 · Your instrument: one qubit</h3>
+            <p>A classical bit is either 0 or 1. A <strong>qubit</strong> has two <em>basis states</em>, written <span class="ket">|0⟩</span> and <span class="ket">|1⟩</span>, and it can also be in combinations of them.</p>
+            <div class="tut-visual">
+              <div class="tut-ket"><span class="ket big">|0⟩</span><span>"zero" — the north pole</span></div>
+              <div class="tut-ket"><span class="ket big">|1⟩</span><span>"one" — the south pole</span></div>
+            </div>
+            <p>Every mission starts the core's qubit in one state. Your job is to steer it into the state its timeline needs.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>2 · Amplitudes</h3>
+            <p>Any qubit state can be written as</p>
+            <p class="formula">|ψ⟩ = α|0⟩ + β|1⟩</p>
+            <p><strong>α</strong> and <strong>β</strong> are <em>amplitudes</em>. They are complex numbers, so each has a size and a direction (a phase). They are not probabilities. They can be negative or imaginary.</p>
+            <p>The amplitude panel in the puzzle chamber shows α and β live after every gate.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>3 · Probabilities</h3>
+            <p>If you <strong>measure</strong> the qubit you get 0 or 1. The chance of each comes from squaring the size of its amplitude:</p>
+            <p class="formula">P(0) = |α|² &nbsp;&nbsp; P(1) = |β|² &nbsp;&nbsp; P(0) + P(1) = 1</p>
+            <p>A single measurement result is random. Missions never roll dice: they check the state you <em>prepared</em>, or the probabilities that state guarantees.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>4 · Superposition and the H gate</h3>
+            <p>The <strong>Hadamard (H)</strong> gate turns a pole state into an equal superposition:</p>
+            <p class="formula">H|0⟩ = (|0⟩ + |1⟩)/√2 = |+⟩ &nbsp;&nbsp; H|1⟩ = (|0⟩ − |1⟩)/√2 = |−⟩</p>
+            <p>A superposition isn't the qubit "secretly being 0 or 1". It is one definite state with amplitude on both outcomes. H is its own inverse, so applying it twice brings you back.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>5 · The X gate: bit flip</h3>
+            <p><strong>X</strong> swaps the two amplitudes: α ↔ β.</p>
+            <p class="formula">X|0⟩ = |1⟩ &nbsp;&nbsp; X|1⟩ = |0⟩</p>
+            <p>On |+⟩ the two amplitudes are equal, so swapping them changes nothing. On |−⟩ the swap only flips the overall sign (more on that in step 7).</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>6 · The Z gate and relative phase</h3>
+            <p><strong>Z</strong> leaves α alone and flips the sign of β:</p>
+            <p class="formula">Z|+⟩ = |−⟩ &nbsp;&nbsp; Z|−⟩ = |+⟩</p>
+            <p>|+⟩ and |−⟩ give exactly the same probabilities (50/50), but they are different states. The difference is the <strong>relative phase</strong> between the |0⟩ and |1⟩ parts. H can reveal it: H|+⟩ = |0⟩ but H|−⟩ = |1⟩. This is <em>interference</em>.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>7 · Global phase is invisible</h3>
+            <p>Multiplying the <em>whole</em> state by the same phase, such as −1, changes nothing physical. No measurement can detect it.</p>
+            <p class="formula">Z|1⟩ = −|1⟩ &nbsp;≡&nbsp; |1⟩</p>
+            <p>The chamber will show you labels like <span class="ket">−|1⟩</span> so you can see the maths, but it counts them as equal to their target. Only the <em>relative</em> phase between amplitudes matters.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <h3>8 · Solving a mission</h3>
+            <ul class="tut-list">
+              <li><strong>State circle:</strong> |0⟩ at the top, |1⟩ at the bottom, |+⟩ on the right, |−⟩ on the left. The cyan needle is your qubit. The amber marker is the target.</li>
+              <li><strong>Rules:</strong> some missions limit your moves (<em>exact</em> or <em>max</em>), lock repeated gates (<em>Echo Lock</em>), add <em>waypoints</em> you must visit in order, or demand a <em>Rewind</em>, where you undo every gate in reverse order.</li>
+              <li><strong>Tools:</strong> Undo steps back one move. Reset restarts the puzzle. Hints reveal more each time you ask. Neither ever touches your saved XP.</li>
+              <li><strong>Daily board:</strong> three missions (Easy, Intermediate and Hard) rotate every day. Clear any of them to keep your streak alive. Clear all three for a +100 XP bonus.</li>
+            </ul>
+            <p class="keys-line">Keyboard: <kbd>X</kbd> <kbd>H</kbd> <kbd>Z</kbd> fire gates · <kbd>U</kbd> undo · <kbd>Esc</kbd> closes field notes</p>
+          </article>
+        </div>
+
+        <div id="tutorial-dots" class="tutorial-dots" aria-hidden="true"></div>
+
+        <div class="tutorial-nav">
+          <button id="btn-tutorial-prev" class="btn btn-ghost" type="button">Back</button>
+          <button id="btn-skip-tutorial" class="btn btn-ghost" type="button">Skip Training</button>
+          <button id="btn-tutorial-return" class="btn btn-secondary hidden" type="button">Return to Mission</button>
+          <button id="btn-tutorial-next" class="btn btn-primary" type="button">Next</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== 3. MISSION CONTROL ===================== -->
+    <section id="screen-missions" class="screen screen-missions hidden" aria-labelledby="missions-heading">
+      <div class="control-grid">
+
+        <!-- Core column -->
+        <aside class="panel core-panel" aria-label="Daily status">
+          <p class="kicker">Mission Control</p>
+          <h2 id="missions-heading" class="control-title">Chronos Array</h2>
+
+          <div class="core-visual" aria-hidden="true">
+            <svg id="control-core" viewBox="0 0 240 240">
+              <defs>
+                <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#e9fdff" />
+                  <stop offset="35%" stop-color="#00e5ff" />
+                  <stop offset="100%" stop-color="#00e5ff" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <circle class="core-grid" cx="120" cy="120" r="108" />
+              <circle class="core-grid" cx="120" cy="120" r="78" />
+              <path id="core-seg-easy" class="core-seg" d="M120 22 A98 98 0 0 1 204.9 169" />
+              <path id="core-seg-intermediate" class="core-seg" d="M204.9 169 A98 98 0 0 1 35.1 169" />
+              <path id="core-seg-hard" class="core-seg" d="M35.1 169 A98 98 0 0 1 120 22" />
+              <g class="core-orbits">
+                <ellipse cx="120" cy="120" rx="66" ry="22" />
+                <ellipse cx="120" cy="120" rx="66" ry="22" transform="rotate(60 120 120)" />
+                <ellipse cx="120" cy="120" rx="66" ry="22" transform="rotate(-60 120 120)" />
+              </g>
+              <circle cx="120" cy="120" r="34" fill="url(#coreGlow)" class="core-heart" />
+              <path class="core-trace" d="M30 212 Q45 196 60 212 T90 212 T120 212 T150 212 T180 212 T210 212" />
+            </svg>
+          </div>
+
+          <div class="daily-status">
+            <div class="status-line">
+              <span>Today's stabilisation</span>
+              <strong><span id="daily-progress-count">0</span> / 3</strong>
+            </div>
+            <div class="meter" role="progressbar" aria-label="Daily missions completed" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0" id="daily-meter">
+              <span id="daily-meter-fill" class="meter-fill"></span>
+            </div>
+            <p id="daily-bonus-text" class="bonus-text">Clear all three tiers today for a +100 XP stabilisation bonus.</p>
+          </div>
+
+          <dl class="core-stats">
+            <div><dt>Current streak</dt><dd id="control-streak">0 days</dd></div>
+            <div><dt>Best streak</dt><dd id="control-best-streak">0 days</dd></div>
+            <div><dt>Next rank</dt><dd id="control-next-rank">—</dd></div>
+          </dl>
+          <p id="streak-note" class="streak-note"></p>
+        </aside>
+
+        <!-- Daily board -->
+        <div class="board-column">
+          <div class="board-head">
+            <div>
+              <p class="kicker">Daily Fracture Board · <span id="board-date">—</span></p>
+              <h2 class="board-title">Today's timeline fractures</h2>
+            </div>
+            <p class="board-sub">New fractures appear each day at local midnight. Daily XP is awarded once per tier per day; you can replay for practice anytime.</p>
+          </div>
+          <div id="daily-board" class="daily-board" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <!-- Archive -->
+      <div class="panel archive-panel">
+        <div class="archive-head">
+          <div>
+            <p class="kicker">Timeline Archive</p>
+            <h2 class="archive-title">Training simulations</h2>
+          </div>
+          <div id="archive-tabs" class="tabs" role="tablist" aria-label="Filter by difficulty">
+            <button class="tab is-active" type="button" role="tab" aria-selected="true" data-difficulty="all">All</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-difficulty="easy">Easy</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-difficulty="intermediate">Intermediate</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-difficulty="hard">Hard</button>
+          </div>
+        </div>
+        <p class="archive-sub">Replay any mission as a simulation. Simulations record your best move count but award no XP.</p>
+        <ol id="archive-list" class="archive-list"></ol>
+      </div>
+
+      <div class="control-footer">
+        <button id="btn-mission-tutorial" class="btn btn-ghost btn-small" type="button">Operator Training</button>
+        <button id="btn-reset-progress" class="btn btn-danger btn-small" type="button">Reset All Progress</button>
+      </div>
+    </section>
+
+    <!-- ===================== 4. PUZZLE CHAMBER ===================== -->
+    <section id="screen-game" class="screen screen-game hidden" aria-labelledby="level-title">
+      <header class="game-header">
+        <button id="btn-game-back" class="btn btn-ghost btn-small" type="button">← Missions</button>
+        <div class="game-meta">
+          <p class="kicker"><span id="game-mode">Daily</span> · <span id="game-difficulty">Easy</span> · <span id="game-sector">Sector</span></p>
+          <h2 id="level-title">Mission</h2>
+        </div>
+        <div class="game-header-actions">
+          <button id="btn-game-tutorial" class="btn btn-ghost btn-small" type="button">Training</button>
+          <button id="btn-game-notes" class="btn btn-ghost btn-small" type="button">Field Notes</button>
+        </div>
+      </header>
+
+      <div class="briefing">
+        <p id="mission-text" class="mission-intro">Mission briefing.</p>
+        <p class="mission-objective"><span class="objective-tag">Objective</span> <span id="mission-objective">—</span></p>
+      </div>
+
+      <div class="chamber">
+        <!-- Left: target and rules -->
+        <div class="panel chamber-side target-panel">
+          <h3 class="panel-title">Target</h3>
+          <div class="target-readout">
+            <span id="target-label" class="ket huge amber">|1⟩</span>
+          </div>
+          <p id="target-condition" class="target-condition"></p>
+          <h3 class="panel-title">Protocol rules</h3>
+          <ul id="rules-list" class="rules-list"></ul>
+          <div class="start-readout">Start state: <span id="start-label" class="ket">|0⟩</span></div>
+        </div>
+
+        <!-- Centre: state circle -->
+        <div class="panel chamber-core">
+          <div class="core-head">
+            <span class="panel-title">Quantum state</span>
+            <span id="phase-label" class="phase-badge">FORWARD</span>
+          </div>
+          <div class="core-container">
+            <svg id="bloch-svg" class="bloch" viewBox="0 0 360 360" role="img" aria-labelledby="bloch-desc">
+              <desc id="bloch-desc">State circle. |0⟩ at the top, |1⟩ at the bottom, |+⟩ on the right, |−⟩ on the left. The cyan needle shows the current state; the amber marker shows the target.</desc>
+              <defs>
+                <radialGradient id="blochCore" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#ffffff" />
+                  <stop offset="40%" stop-color="#00e5ff" />
+                  <stop offset="100%" stop-color="#00e5ff" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+              <g class="bloch-orbits" aria-hidden="true">
+                <circle cx="180" cy="180" r="160" class="orbit-dash" />
+                <ellipse cx="180" cy="180" rx="150" ry="44" class="orbit-tilt" />
+              </g>
+              <circle cx="180" cy="180" r="130" class="bloch-circle" />
+              <line x1="180" y1="44" x2="180" y2="316" class="bloch-axis" />
+              <line x1="44" y1="180" x2="316" y2="180" class="bloch-axis" />
+              <line id="bloch-prob-band" x1="50" y1="180" x2="310" y2="180" class="bloch-band hidden" />
+              <text x="180" y="30" class="bloch-label">|0⟩</text>
+              <text x="180" y="344" class="bloch-label">|1⟩</text>
+              <text x="336" y="186" class="bloch-label">|+⟩</text>
+              <text x="24" y="186" class="bloch-label">|−⟩</text>
+              <g id="bloch-trail"></g>
+              <g id="bloch-waypoints"></g>
+              <g id="bloch-target" class="bloch-target">
+                <line x1="180" y1="180" x2="180" y2="50" />
+                <circle cx="180" cy="50" r="11" />
+              </g>
+              <g id="bloch-arrow" class="bloch-arrow">
+                <line x1="180" y1="180" x2="180" y2="56" />
+                <circle cx="180" cy="50" r="8" />
+              </g>
+              <circle cx="180" cy="180" r="18" fill="url(#blochCore)" class="bloch-heart" />
+            </svg>
+          </div>
+          <div class="state-readout">
+            <span class="readout-label">Current</span>
+            <span id="state-label" class="ket huge">|0⟩</span>
+            <span id="state-note" class="state-note"></span>
+          </div>
+        </div>
+
+        <!-- Right: amplitudes and probabilities -->
+        <div class="panel chamber-side amp-panel">
+          <h3 class="panel-title">Amplitudes</h3>
+          <div class="amplitudes-panel">
+            <div class="amp-row"><span class="amp-name">α <small>on |0⟩</small></span><span id="amp-a" class="amp-value">+1.000</span></div>
+            <div class="amp-row"><span class="amp-name">β <small>on |1⟩</small></span><span id="amp-b" class="amp-value">+0.000</span></div>
+            <div class="amp-row amp-phase"><span class="amp-name">Relative phase</span><span id="amp-phase" class="amp-value">—</span></div>
+          </div>
+
+          <h3 class="panel-title">Measurement probabilities</h3>
+          <div class="probabilities-panel">
+            <div class="prob-row">
+              <div class="prob-top"><span>P(|0⟩) = |α|²</span><span id="prob-0">100.0%</span></div>
+              <div class="bar-container"><div id="bar-0" class="bar"></div></div>
+            </div>
+            <div class="prob-row">
+              <div class="prob-top"><span>P(|1⟩) = |β|²</span><span id="prob-1">0.0%</span></div>
+              <div class="bar-container"><div id="bar-1" class="bar bar-1"></div></div>
+            </div>
+            <p class="prob-sum">Sum check: <span id="prob-sum">1.000</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gate console -->
+      <div class="panel console">
+        <div class="console-status">
+          <div class="stat"><span class="stat-label">Moves</span><span class="stat-value"><span id="move-count">0</span><span id="move-limit" class="stat-limit"></span></span></div>
+          <div class="stat stat-history"><span class="stat-label">Gate trace</span><span id="gate-history" class="history-chips">None</span></div>
+          <div class="stat"><span class="stat-label">Hints left</span><span id="hints-left" class="stat-value">3</span></div>
+        </div>
+
+        <div class="controls-panel">
+          <div class="gate-buttons" role="group" aria-label="Quantum gates">
+            <button id="btn-gate-X" class="btn-gate" type="button" data-gate="X" aria-keyshortcuts="X">
+              <span class="gate-glyph">X</span><span class="gate-name">Bit flip</span><span class="gate-key">key X</span>
+            </button>
+            <button id="btn-gate-H" class="btn-gate" type="button" data-gate="H" aria-keyshortcuts="H">
+              <span class="gate-glyph">H</span><span class="gate-name">Superposition</span><span class="gate-key">key H</span>
+            </button>
+            <button id="btn-gate-Z" class="btn-gate" type="button" data-gate="Z" aria-keyshortcuts="Z">
+              <span class="gate-glyph">Z</span><span class="gate-name">Phase flip</span><span class="gate-key">key Z</span>
+            </button>
+          </div>
+          <div class="utility-buttons">
+            <button id="btn-undo" class="btn btn-utility" type="button" aria-keyshortcuts="U">↶ Undo</button>
+            <button id="btn-reset" class="btn btn-utility" type="button">⟲ Reset Puzzle</button>
+            <button id="btn-hint" class="btn btn-utility btn-hint" type="button">✦ Hint</button>
+          </div>
+        </div>
+
+        <p id="message" class="message-text" role="status" aria-live="polite"></p>
+        <ol id="hint-text" class="hint-list" aria-live="polite"></ol>
+      </div>
+    </section>
+
+    <!-- ===================== 5. RESULT SCREEN ===================== -->
+    <section id="screen-result" class="screen screen-result hidden" aria-labelledby="result-title">
+      <div class="panel result-panel">
+        <div class="result-emblem" aria-hidden="true">
+          <svg viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="54" class="emblem-ring" />
+            <circle cx="60" cy="60" r="40" class="emblem-ring inner" />
+            <path d="M38 61 l15 15 l30 -32" class="emblem-check" />
+          </svg>
+        </div>
+        <p id="result-kicker" class="kicker">Timeline stabilised</p>
+        <h2 id="result-title">Mission complete</h2>
+        <p id="result-narrative" class="result-narrative"></p>
+
+        <dl class="result-stats">
+          <div><dt>Moves used</dt><dd id="result-moves">0</dd></div>
+          <div><dt>Par</dt><dd id="result-par">0</dd></div>
+          <div><dt>XP earned</dt><dd id="result-xp">+0</dd></div>
+          <div><dt>Streak</dt><dd id="result-streak">0</dd></div>
+          <div><dt>Total XP</dt><dd id="result-total-xp">0</dd></div>
+        </dl>
+
+        <ul id="result-breakdown" class="result-breakdown"></ul>
+        <p class="result-sequence">Gate sequence: <span id="win-sequence" class="history-chips"></span></p>
+
+        <div class="button-group">
+          <button id="btn-result-next" class="btn btn-primary" type="button">Next Mission</button>
+          <button id="btn-result-replay" class="btn btn-secondary" type="button">Replay</button>
+          <button id="btn-result-home" class="btn btn-ghost" type="button">Mission Control</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FIELD NOTES (overlay) ===================== -->
+  <div id="notes-panel" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="notes-title">
+    <div class="overlay-card notes-card">
+      <div class="overlay-head">
+        <div>
+          <p class="kicker">Operator reference</p>
+          <h2 id="notes-title">Field Notes</h2>
+        </div>
+        <button id="btn-close-notes" class="btn btn-ghost btn-small" type="button" aria-label="Close field notes">Close ✕</button>
+      </div>
+
+      <div class="notes-grid">
+        <section class="note-block">
+          <h3>Gates</h3>
+          <table class="note-table">
+            <thead><tr><th>Gate</th><th>Matrix</th><th>Effect</th></tr></thead>
+            <tbody>
+              <tr><td class="gate-cell">X</td><td><span class="matrix">[0 1; 1 0]</span></td><td>Swaps α ↔ β. |0⟩ ↔ |1⟩.</td></tr>
+              <tr><td class="gate-cell">H</td><td><span class="matrix">1/√2 [1 1; 1 −1]</span></td><td>|0⟩ → |+⟩, |1⟩ → |−⟩, and back. Its own inverse.</td></tr>
+              <tr><td class="gate-cell">Z</td><td><span class="matrix">[1 0; 0 −1]</span></td><td>Flips the sign of β. |+⟩ ↔ |−⟩. Leaves |0⟩ alone.</td></tr>
+            </tbody>
+          </table>
+          <p class="note-small">All three are their own inverses: XX = HH = ZZ = I. Also HZH = X and HXH = Z.</p>
+        </section>
+
+        <section class="note-block">
+          <h3>Key states</h3>
+          <table class="note-table">
+            <thead><tr><th>State</th><th>α, β</th><th>P(0) / P(1)</th></tr></thead>
+            <tbody>
+              <tr><td class="ket">|0⟩</td><td>1, 0</td><td>100% / 0%</td></tr>
+              <tr><td class="ket">|1⟩</td><td>0, 1</td><td>0% / 100%</td></tr>
+              <tr><td class="ket">|+⟩</td><td>0.707, 0.707</td><td>50% / 50%</td></tr>
+              <tr><td class="ket">|−⟩</td><td>0.707, −0.707</td><td>50% / 50%</td></tr>
+            </tbody>
+          </table>
+          <p class="note-small">0.707 ≈ 1/√2. Probabilities are squared magnitudes: |α|² + |β|² = 1.</p>
+        </section>
+
+        <section class="note-block">
+          <h3>Phase</h3>
+          <p><strong>Relative phase</strong> is the angle between β and α. It separates |+⟩ (0°) from |−⟩ (180°). You can't see it in a direct measurement, but H turns it into a difference in probability.</p>
+          <p><strong>Global phase</strong> multiplies the whole state, e.g. −|1⟩. It is physically undetectable, so the chamber treats −|1⟩ as |1⟩.</p>
+        </section>
+
+        <section class="note-block">
+          <h3>Protocol rules</h3>
+          <dl class="rule-defs">
+            <dt>Exact moves</dt><dd>The target is checked only when you've used exactly that many moves.</dd>
+            <dt>Max moves</dt><dd>Reach the target within the budget.</dd>
+            <dt>Echo Lock</dt><dd>The same gate can't fire twice in a row. It would only cancel itself.</dd>
+            <dt>Waypoints</dt><dd>Visit these states in order before the target counts.</dd>
+            <dt>Rewind</dt><dd>After reaching the target, undo each gate in reverse order to restore the start. A wrong gate restarts the rewind.</dd>
+            <dt>Probability target</dt><dd>Any state with the stated measurement probability passes. No random roll is made.</dd>
+          </dl>
+        </section>
+
+        <section class="note-block">
+          <h3>Rewards</h3>
+          <ul class="tut-list">
+            <li>Daily missions: Easy 50 XP, Intermediate 100 XP, Hard 200 XP. Each tier pays once per day.</li>
+            <li>Clear all three tiers on the same day: +100 XP stabilisation bonus, once per day.</li>
+            <li>Streak: clear at least one daily mission per calendar day. Miss a day and the streak resets.</li>
+            <li>Undo, reset and hints never cost saved progress.</li>
+          </ul>
+        </section>
+
+        <section class="note-block">
+          <h3>State circle</h3>
+          <p>The circle is a slice through the Bloch sphere. Opposite points are orthogonal (perfectly distinguishable) states. X, H and Z keep this game's states on the slice, so the needle always points somewhere on it.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CONFIRM DIALOG ===================== -->
+  <div id="confirm-dialog" class="overlay hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+    <div class="overlay-card confirm-card">
+      <h2 id="confirm-title">Erase all progress?</h2>
+      <p id="confirm-text">This permanently deletes your XP, streak and daily mission records in this browser. It can't be undone.</p>
+      <div class="button-group">
+        <button id="btn-confirm-no" class="btn btn-secondary" type="button">Keep my progress</button>
+        <button id="btn-confirm-yes" class="btn btn-danger" type="button">Erase everything</button>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p class="noscript">Quantum Echo needs JavaScript enabled to run.</p></noscript>
+
+  <!-- Load JavaScript game files in dependency order -->
+  <script src="js/quantum.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
